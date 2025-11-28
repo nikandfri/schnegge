@@ -84,7 +84,9 @@ export default function Home() {
 
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 })
+  const [heroMouseX, setHeroMouseX] = useState(0)
   const footerRef = useRef<HTMLElement>(null)
+  const heroRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
     const handleMouseMove = (e: MouseEvent) => {
@@ -102,6 +104,31 @@ export default function Home() {
 
     window.addEventListener('mousemove', handleMouseMove)
     return () => window.removeEventListener('mousemove', handleMouseMove)
+  }, [])
+
+  useEffect(() => {
+    const handleHeroMouseMove = (e: MouseEvent) => {
+      if (heroRef.current) {
+        const rect = heroRef.current.getBoundingClientRect()
+        const x = e.clientX - rect.left
+        // Normalize mouse position (0 to 1)
+        const normalizedX = x / rect.width
+        // Calculate offset (-1 to 1, center is 0)
+        const offset = (normalizedX - 0.5) * 2
+        setHeroMouseX(offset)
+      }
+    }
+
+    if (heroRef.current) {
+      heroRef.current.addEventListener('mousemove', handleHeroMouseMove)
+      heroRef.current.addEventListener('mouseleave', () => setHeroMouseX(0))
+    }
+
+    return () => {
+      if (heroRef.current) {
+        heroRef.current.removeEventListener('mousemove', handleHeroMouseMove)
+      }
+    }
   }, [])
 
   return (
@@ -194,27 +221,41 @@ export default function Home() {
       
       <main className="">
         <section className="hero" aria-label="Hero section">
-          <div className="relative isolate overflow-hidden pt-14">
-          <img
-            alt=""
-            src="https://images.unsplash.com/photo-1521737604893-d14cc237f11d?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=2830&q=80&blend=111827&sat=-100&exp=15&blend-mode=multiply"
-            className="absolute inset-0 -z-10 hidden size-full object-cover dark:block"
-          />
-          <img
-            alt=""
-            src="https://images.unsplash.com/photo-1521737604893-d14cc237f11d?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=2830&q=80&blend=fff&sat=-100&exp=15&blend-mode=overlay"
-            className="absolute inset-0 -z-10 size-full object-cover opacity-10 dark:hidden"
-          />
+          <div ref={heroRef} className="relative isolate overflow-hidden pt-14">
+          <div className="absolute inset-0 -z-10 w-full overflow-hidden bg-black">
+            <motion.div 
+              className="grid grid-cols-24 grid-rows-1 h-full w-[150%]"
+              style={{
+                left: '-25%',
+              }}
+              animate={{
+                x: -heroMouseX * 30,
+              }}
+              transition={{
+                type: "spring",
+                stiffness: 100,
+                damping: 30,
+                mass: 0.5,
+              }}
+            >
+              {Array.from({ length: 24 }).map((_, index) => (
+                <div
+                  key={index}
+                  className={index % 2 === 0 ? "bg-blue-300" : "bg-black"}
+                />
+              ))}
+            </motion.div>
+          </div>
           <div className="mx-auto max-w-7xl px-6 lg:px-8">
-            <div className="mx-auto max-w-2xl pt-16 pb-32 sm:pt-20 sm:pb-40 lg:pt-24 lg:pb-48">
+            <div className="mx-auto max-w-2xl pt-8 pb-32 sm:pt-0 sm:pb-20 lg:pt-0 lg:pb-20">
               <div className="text-center">
-                <h1 className="text-balance text-5xl font-semibold tracking-tight text-gray-900 sm:text-7xl dark:text-white">
-                  Schneggen is a people business!
+                <h1 className="text-balance text-9xl font-bold tracking-tight text-white sm:text-8xl dark:text-white">
+                  SCHNEGGEN IS A PEOPLE BUSINESS!
                 </h1>
                 <img
                   alt="Schnegge"
                   src="/schnegge.svg"
-                  className="mx-auto mt-8 h-32 w-auto sm:h-40 lg:h-48"
+                  className="mx-auto mt-0 h-32 w-auto sm:h-40 lg:h-48"
                 />
               </div>
               
@@ -223,7 +264,7 @@ export default function Home() {
                 <img
                   alt="Schnegge"
                   src="/schnegge1.JPG"
-                  className="absolute top-10 left-10 w-48 rounded-lg shadow-lg"
+                  className="absolute top-20 left-20 w-48 rounded-lg shadow-lg"
                 />
                 <img
                   alt="Schnegge"
